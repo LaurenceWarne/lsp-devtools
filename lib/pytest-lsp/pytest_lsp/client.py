@@ -90,6 +90,8 @@ class Client(LanguageServer):
         self.diagnostics: Dict[str, List[Diagnostic]] = {}
         """Used to hold any recieved diagnostics."""
 
+        self._last_log_index = 0
+
     async def completion_request(
         self,
         uri: str,

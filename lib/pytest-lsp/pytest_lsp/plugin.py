@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import sys
+import textwrap
 import threading
 from typing import Any
 from typing import Callable
@@ -191,6 +192,36 @@ def make_client_server(config: ClientServerConfig) -> ClientServer:
         root_uri=config.root_uri,
         initialization_options=config.initialization_options,
     )
+
+
+# @pytest.hookimpl(tryfirst==True)
+# def pytest_runtestloop(session: pytest.Session):
+#     # outcome = yield
+#     breakpoint()
+#     1 + 3
+
+
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
+    """Add any captured log messages to the report."""
+    client: Optional[Client] = None
+
+    for arg in item.funcargs.values():
+        if isinstance(arg, Client):
+            client = arg
+            break
+
+    if not client:
+        return
+
+    levels = ["ERROR: ", " WARN: ", " INFO: ", "DEBUG: "]
+    messages = [
+        f"{textwrap.indent(m.message, levels[m.type - 1])}"
+        for m in client.log_messages[client._last_log_index :]
+    ]
+    client._last_log_index = len(client.log_messages)
+
+    if len(messages) > 0:
+        item.add_report_section(call.when, "window/logMessages", "\n".join(messages))
 
 
 def fixture(
