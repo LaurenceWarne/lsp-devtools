@@ -105,7 +105,7 @@ class Client(LanguageServer):
         line
            The line number to make the completion request from
         character
-           The character column to make the completion reqest from.
+           The character column to make the completion request from.
         """
 
         response = await self.lsp.send_request_async(
@@ -117,6 +117,34 @@ class Client(LanguageServer):
         )
 
         return CompletionList(**response)
+
+    async def hover_request(
+        self,
+        uri: str,
+        line: int,
+        character: int,
+    ) -> Hover:
+        """Send a ``textDocument/hover`` request.
+
+        Parameters
+        ----------
+        uri
+           The uri of the document to make the hover request from
+        line
+           The line number to make the hover request from
+        character
+           The character column to make the hover request from.
+        """
+
+        response = await self.lsp.send_request_async(
+            HOVER,
+            HoverParams(
+                text_document=TextDocumentIdentifier(uri=uri),
+                position=Position(line=line, character=character),
+            ),
+        )
+
+        return Hover(**response)
 
     async def completion_resolve_request(self, item: CompletionItem) -> CompletionItem:
         """Make a ``completionItem/resolve`` request to a language server.
